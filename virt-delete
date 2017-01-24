@@ -1,16 +1,24 @@
-#!/bin/sh
+#!/bin/sh -e
+set -o pipefail
 
-echo "Destroy: $1"
-virsh destroy $1 2> /dev/null
+readonly DOMAIN="$1"
+if ! shift || [ $# -gt 0 ]; then
+    echo 'Usage: virt-delete DOMAIN' >&2
+    exit 1
+fi
 
-for disk_path in $(virt-query $1 disks | awk '{print $3}'); do
-	pool=$(virsh vol-pool $disk_path)
-	name=$(virsh vol-info $disk_path | awk '$1 == "Name:" {print $2}')
+echo "Destroy: $DOMAIN"
+virsh destroy "$DOMAIN" 2> /dev/null
+
+# TODO: better parsing which is tolerant to spaces in the values:
+for disk_path in $(virt-query "$DOMAIN" disks | awk '{print $3}'); do
+	pool="$(virsh vol-pool "$disk_path")"
+	name="$(virsh vol-info "$disk_path" | awk '$1 == "Name:" {print $2}')"
 	
 	echo "Delete volume: $disk ($name in $pool)"
-	virsh vol-delete $name $pool
+	virsh vol-delete "$name" "$pool"
 done
 
-echo "Undefine: $1"
-virsh undefine $1
+echo "Undefine: $DOMAIN"
+virsh undefine "$DOMAIN"
 

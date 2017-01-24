@@ -8,7 +8,8 @@ if ! shift || [ $# -gt 0 ]; then
 fi
 
 echo "Destroy: $DOMAIN"
-virsh destroy "$DOMAIN" 2> /dev/null
+virsh destroy "$DOMAIN" 2> /dev/null \
+|| echo 'Destroying has not been done.'
 
 # TODO: better parsing which is tolerant to spaces in the values:
 for disk_path in $(virt-query "$DOMAIN" disks | awk '{print $3}'); do

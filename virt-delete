@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -ex
 set -o pipefail
 
 readonly DOMAIN="$1"
